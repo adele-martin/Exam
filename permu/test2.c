@@ -41,9 +41,10 @@ void sort_string(char *s, int s_len)
 // Recursive function to generate permutations
 void generate_permutations(char *s, int ind, int s_len)
 {
+	//Base case is reached, so we print, then we backtrack and increase i!
     if (ind == s_len - 1)
     {
-        puts(s); // Print the current permutation
+        puts(s);
         return;
     }
 
@@ -52,7 +53,7 @@ void generate_permutations(char *s, int ind, int s_len)
     {
         swap_char(&s[ind], &s[i]); // Swap to generate a new combination
         generate_permutations(s, ind + 1, s_len); // Recur for the next index
-        swap_char(&s[ind], &s[i]); // Backtrack to restore original order
+        swap_char(&s[ind], &s[i]); // Backtrack to restore original order only hqppens after base case is printed
         i++;
     }
 }
