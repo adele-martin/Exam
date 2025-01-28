@@ -78,7 +78,6 @@ int main(int argc, char **argv)
     // Sort the string once to ensure permutations are generated in lexicographical order
 	sort_string(working_string, s_len);
     generate_permutations(working_string, 0, s_len);
-
     free(working_string);
     return 0;
 }
