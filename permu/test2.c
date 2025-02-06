@@ -48,7 +48,7 @@ void generate_permutations(char *s, int ind, int s_len)
         return;
     }
 
-    int i = ind; // Iterator starts from the current index
+    int i = ind; // Iterator can increase without going through a whole loop 
     while (i < s_len)
     {
         swap_char(&s[ind], &s[i]); // Swap to generate a new combination

@@ -13,6 +13,7 @@ int ft_strlen(char *s)
     return (len);
 }
 
+//if count is less than 0 you have got to return 0 because it won't be balanced
 int is_balanced(char *s)
 {
     int i = 0, count = 0;
@@ -26,10 +27,13 @@ int is_balanced(char *s)
             return 0;
         i++;
     }
-    return (count == 0);
+    if (count == 0)
+		return (1);
+	else
+		return (0);
 }
 
-void find_min_removals(char *s, int ind, int s_len, int *min, int current_op)
+void process_brackets(char *s, int ind, int s_len, int *min, int current_op, int print_mode)
 {
     if (ind == s_len)
         return;
@@ -37,36 +41,27 @@ void find_min_removals(char *s, int ind, int s_len, int *min, int current_op)
     for (int i = ind; i < s_len; i++)
     {
         char tmp = s[i];
-        s[i] = ' ';
+        s[i] = ' ';  // Simulate removal
         current_op++;
 
         if (!is_balanced(s))
-            find_min_removals(s, i + 1, s_len, min, current_op);
-        else if (is_balanced(s) && current_op < *min)
-            *min = current_op;
+        {
+            process_brackets(s, i + 1, s_len, min, current_op, print_mode);
+        }
+        else
+        {
+            if (!print_mode)  // Finding minimum removals
+            {
+                if (current_op < *min)
+                    *min = current_op;
+            }
+            else if (current_op == *min)  // Printing solutions when at minimum removals
+            {
+                puts(s);
+            }
+        }
 
-        s[i] = tmp;
-        current_op--;
-    }
-}
-
-void find_solutions(char *s, int ind, int s_len, int min, int current_op)
-{
-    if (ind == s_len || current_op > min)
-        return;
-
-    for (int i = ind; i < s_len; i++)
-    {
-        char tmp = s[i];
-        s[i] = ' ';
-        current_op++;
-
-        if (!is_balanced(s))
-            find_solutions(s, i + 1, s_len, min, current_op);
-        else if (is_balanced(s) && current_op == min)
-            puts(s);
-
-        s[i] = tmp;
+        s[i] = tmp;  // Backtrack
         current_op--;
     }
 }
@@ -89,8 +84,8 @@ int main(int argc, char **argv)
     }
 
     int min = INT_MAX;
-    find_min_removals(argv[1], 0, s_len, &min, 0);
-    find_solutions(argv[1], 0, s_len, min, 0);
-
+    process_brackets(argv[1], 0, s_len, &min, 0, 0);
+    process_brackets(argv[1], 0, s_len, &min, 0, 1);
+//Don't forget the current operator!!
     return 0;
 }
