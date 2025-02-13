@@ -48,7 +48,7 @@ void generate_permutations(char *s, int ind, int s_len)
         return;
     }
 
-    int i = ind; // Iterator can increase without going through a whole loop 
+    int i = ind; // Iterator can increase without going through a whole loop
     while (i < s_len)
     {
         swap_char(&s[ind], &s[i]); // Swap to generate a new combination
@@ -81,4 +81,24 @@ int main(int argc, char **argv)
     generate_permutations(working_string, 0, s_len);
     free(working_string);
     return 0;
+}
+
+void bubble_sort(char *s, int s_len)
+{
+    int i = 0;
+    int j;
+    while (i < s_len - 1)
+    {
+        j = 0;
+        while (j < s_len - i - 1)
+        {
+            if (s[j] > s[j + 1])
+                swap_chars(&s[j], &s[j + 1]);
+            j++;
+        }
+        i++;
+    }
+
+
+
 }
