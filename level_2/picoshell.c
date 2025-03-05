@@ -9,24 +9,51 @@ int    picoshell(char **cmds[])
 	//I am creating two file descriptors here.
 	//pipefd[0] refers to the read end of the pipe. pipefd[1] refers to the write end of the pipe.
 	int pipe_fds[2];
-	pipe(pipe_fds);
-	pid_t pid = fork();
+	pid_t pid;
+	int i = 0;
+	int prev_fd = 0; //To keep track of the previous pipe's read end
 
-	if (pid == 0)
+	while (cmds[i])
 	{
-		 //You are inside the child process
+		if (cmds[i + 1]) // if there is another cmd after, pipe
+			pipe(pipe_fds);
+		pid = fork();
+		if (pid == 0)
+		{
+			//you are in the child process
+			if ((prev_fd)) //this is not the first cmd
+			{
+				dup2(prev_fd, STDIN_FILENO);
+				close(prev_fd);
+			}
+			if (cmds[i + 1])
+			{
+				close(pipe_fds[0]); // Close read end, as the child will write
+				dup2(pipe_fds[1], STDOUT_FILENO); //Duplicate the write end
+				close(pipe_fds[1]);
+			}
+			if (execvp(cmds[i][0], cmds[i]) != 1)
+				exit (1);
+		}
+		else
+		{
+			if (prev_fd) //this is not the first cmd
+			{
+				close(prev_fd);
+			}
+			if (cmds[i + 1])
+			{
+				close(pipe_fds[1]);
+				prev_fd = pipe_fds[0];
+			}
+		}
+		i++;
 	}
-	else if (pid > 0)
-	{
-		//You are in the parent process
-	}
-	else
-	{
-		perror("forking process failed");
-	return 1;
-	}
+	while(wait(NULL) > 0)
+		;
 	return 0;
 }
+
 
 int     main(int argc, char **argv)
 {
@@ -59,12 +86,6 @@ int     main(int argc, char **argv)
     free(cmds);
         return ret;
 }
-
-
-
-
-
-
 
 //To track the file descriptors you may use:
 //valgrind --track-fds=yes ./your_program
