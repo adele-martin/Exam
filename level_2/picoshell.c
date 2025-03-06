@@ -27,39 +27,37 @@ int    picoshell(char **cmds[])
 		if (pid == 0)
 		{
 			//you are in the child process
-			if ((prev_fd)) //this is not the first cmd
+			if ((prev_fd)) //You need the input from last command
 			{
 				//this is redirection input
-				dup2(prev_fd, STDIN_FILENO);
+				dup2(prev_fd, 0);
 				close(prev_fd);
 			}
 			if (cmds[i + 1])
 			{
 				//this is redirection output
-				close(pipe_fds[0]); //Close read end, so it doesn't wait forever
-				dup2(pipe_fds[1], STDOUT_FILENO); //Duplicate the write end
-				close(pipe_fds[1]); //Close write end, the parent does not write to pipe
+				close(pipe_fds[0]); //When the next command tries to read from the pipe, it will never see EOF because the read end is still open.
+				dup2(pipe_fds[1], 1); //Duplicate the write end
+				close(pipe_fds[1]); //Close write end, because we duplicated it
 			}
+			//execvp inherits the file descriptors that were set up before it was called.
+			//This is why using dup2 always affects the execve function
 			if (execvp(cmds[i][0], cmds[i]) != 1)
 				exit (1);
 		}
-		else
-		{
-			//we are back in parent process now
+			waitpid(pid, NULL, 0);
 			if (prev_fd) //if this is not the first cmd we close prev_fds
 			//because we will re-assign it below
 				close(prev_fd);
 			if (cmds[i + 1])
 			{
-				close(pipe_fds[1]);
+				close(pipe_fds[1]); //signal to child no more data will be written to this specific pipe
+				//Important to close it for next command to detect the praen't has received the last cmd's input
 				prev_fd = pipe_fds[0];
 			}
-		}
+			//no need to close pipe for the last cmd because there is no next child process
 		i++;
 	}
-	while(wait(NULL) > 0)
-		;
-	//The parent and child processes run in parallel, this makes sure both are executed
 	return 0;
 }
 
@@ -98,3 +96,19 @@ int     main(int argc, char **argv)
 
 //To track the file descriptors you may use:
 //valgrind --track-fds=yes ./your_program
+
+
+/*
+Main process executes
+-first command
+-second command
+-fork a pipe
+
+We need to take the stdout of the first command as stdin to pipe.
+We are simulating the shell's file descriptors stdin and stdout.
+
+Since the first command is happening in the main process
+we ought to tweak it to it doesnt output in the stdout.
+So we have to dup2()!
+
+*/
